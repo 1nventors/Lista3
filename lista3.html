@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="lista3.css" />
+    <link
+      rel="icon"
+      href="https://upload.wikimedia.org/wikipedia/commons/6/61/HTML5_logo_and_wordmark.svg"
+      type="image/x-icon"
+    />
+    <title>Lista 3</title>
+  </head>
+  <body>
+    <header>
+      <nav id="navbar">
+        <ul>
+          <li class="nav-link"><a href="#questao_1">Questão 1</a></li>
+          <li class="nav-link"><a href="#questao_2">Questão 2</a></li>
+          <li class="nav-link"><a href="#questao_3">Questão 3</a></li>
+          <li class="nav-link"><a href="#questao_4">Questão 4</a></li>
+          <li class="nav-link"><a href="#questao_5">Questão 5</a></li>
+          <li class="nav-link"><a href="#questao_6">Questão 6</a></li>
+          <li class="nav-link"><a href="#questao_7">Questão 7</a></li>
+          <li class="nav-link"><a href="#questao_8">Questão 8</a></li>
+          <li class="nav-link"><a href="#questao_9">Questão 9</a></li>
+          <li class="nav-link"><a href="#questao_10">Questão 10</a></li>
+          <li class="nav-link"><a href="#referencia">Referências</a></li>
+        </ul>
+      </nav>
+    </header>
+<section id="questao_1">
+      <h1>Questão 1</h1>
+      <br>
+      <h2>Explicação</h2>
+      <p>Para resolver o exercício, utilizamos interpolação de Lagrange com 3 e 4 pontos consecutivos para aproximar a função y(x). Escolhemos os pontos próximos à mudança de sinal entre x=2 e x=2.5, onde y passa de positivo para negativo. Com esses pontos, construímos polinômios que se aproximam da função real. Depois, aplicamos o método da bisseção para encontrar a raiz dos polinômios, ou seja, onde y(x)=0. O resultado foi uma raiz estimada próxima de x=2.33.</p>
+      <h2>Implementação em C#</h2>
+      <pre><code>
+            using System;
+
+class InterpolacaoLagrange
+{
+    // Dados da tabela
+    static double[] x = { 0, 0.5, 1, 1.5, 2, 2.5, 3 };
+    static double[] y = { 1.8421, 2.4694, 2.4921, 1.9047, 0.8509, -0.4112, -1.5727 };
+
+    static void Main()
+    {
+        // (a) 3 pontos consecutivos: 1.5, 2.0, 2.5
+        double[] x3 = { 1.5, 2.0, 2.5 };
+        double[] y3 = { 1.9047, 0.8509, -0.4112 };
+
+        double raiz3 = EncontrarRaiz(x3, y3, 1.5, 2.5, 1e-6);
+        Console.WriteLine("(a) Raiz com 3 pontos: x ≈ {0:F6}, y ≈ {1:F6}", raiz3, Lagrange(x3, y3, raiz3));
+
+        // (b) 4 pontos consecutivos: 1.5, 2.0, 2.5, 3.0
+        double[] x4 = { 1.5, 2.0, 2.5, 3.0 };
+        double[] y4 = { 1.9047, 0.8509, -0.4112, -1.5727 };
+
+        double raiz4 = EncontrarRaiz(x4, y4, 1.5, 2.5, 1e-6);
+        Console.WriteLine("(b) Raiz com 4 pontos: x ≈ {0:F6}, y ≈ {1:F6}", raiz4, Lagrange(x4, y4, raiz4));
+    }
+
+    // Método de interpolação de Lagrange
+    static double Lagrange(double[] x, double[] y, double xi)
+    {
+        double sum = 0;
+        for (int i = 0; i < x.Length; i++)
+        {
+            double term = y[i];
+            for (int j = 0; j < x.Length; j++)
+            {
+                if (j != i)
+                    term *= (xi - x[j]) / (x[i] - x[j]);
+            }
+            sum += term;
+        }
+        return sum;
+    }
+
+    // Método da bisseção para encontrar raiz do polinômio de Lagrange
+    static double EncontrarRaiz(double[] x, double[] y, double a, double b, double tol)
+    {
+        double fa = Lagrange(x, y, a);
+        double fb = Lagrange(x, y, b);
+
+        if (fa * fb > 0)
+            throw new Exception("A função não muda de sinal no intervalo dado.");
+
+        while ((b - a) > tol)
+        {
+            double c = (a + b) / 2;
+            double fc = Lagrange(x, y, c);
+            if (fa * fc < 0)
+            {
+                b = c;
+                fb = fc;
+            }
+            else
+            {
+                a = c;
+                fa = fc;
+            }
+        }
+        return (a + b) / 2;
+    }
+}
+
+        
+        </code></pre>
+      <pre>
+        Saída:
+(a) Raiz com 3 pontos: x ? 2.345894
+(b) Raiz com 4 pontos: x ? 2.338638
+é possível ver o gráfico <a href="https://drive.google.com/file/d/1sPj_zhw7rQsrcQoWwaJBGCrUkzrs4pmp/view?usp=sharing" target="_blank">aqui</a>
+
+      </pre>
+    </section>
+    <section id="questao_2">
+        <h1>Questão 2</h1>
+        <br />
+      <h2>Explicação</h2>
+      <p>
+        O código encontra um polinômio de segundo grau (da forma p(x) = ax² + bx + c) que passa por três pontos dados, ele resolve isso montando um sistema de equações e usando um método chamado Método de Cramer para calcular os coeficientes a, b e c, no final, o código imprime o polinômio que passa pelos pontos fornecidos.
+      </p>
+      <h2>Implementação em C#</h2>
+      <pre><code>
+        using System;
+
+class Questao2
+{
+    static void Main()
+    {
+        // Montagem do sistema linear
+        // A * x = b
+        double[,] A = {
+            { Math.Pow(-1, 2), -1, 1 }, // p(-1) = -32
+            { Math.Pow(2, 2),  2, 1 },  // p(2)  = 1
+            { Math.Pow(4, 2),  4, 1 }   // p(4)  = 3
+        };
+
+        double[] B = { -32, 1, 3 };
+
+        double[] solucao = ResolverSistema3x3(A, B);
+
+        Console.WriteLine($"Polinômio: p(x) = {solucao[0]}x² + {solucao[1]}x + {solucao[2]}");
+    }
+
+    static double[] ResolverSistema3x3(double[,] A, double[] B)
+    {
+        // Método de Cramer para resolver sistema 3x3
+        double det = Determinante3x3(A);
+
+        double[] resultado = new double[3];
+
+        for (int i = 0; i < 3; i++)
+        {
+            double[,] Ai = (double[,])A.Clone();
+
+            for (int j = 0; j < 3; j++)
+                Ai[j, i] = B[j]; // Substitui a coluna i por B
+
+            resultado[i] = Determinante3x3(Ai) / det;
+        }
+
+        return resultado;
+    }
+
+    static double Determinante3x3(double[,] m)
+    {
+        return m[0,0]*(m[1,1]*m[2,2] - m[1,2]*m[2,1])
+             - m[0,1]*(m[1,0]*m[2,2] - m[1,2]*m[2,0])
+             + m[0,2]*(m[1,0]*m[2,1] - m[1,1]*m[2,0]);
+    }
+}
+
+    </code></pre>
+  <pre>
+    Saída: Polinômio: p(x) = -2x² + 13x + -17
+  </pre>
+    </section>
+    <section id="questao_3">
+        <h1>Questão 3</h1>
+        <br />
+      <h2>Explicação</h2>
+      <p>
+O código encontra um modelo exponencial (da forma y = ae^(bx)) que se ajusta melhor aos dados fornecidos, usando o método de mínimos quadrados, ele transforma os valores de y em seus logaritmos (ln(y)), criando uma relação linear, depois calcula os coeficientes a e b através de uma fórmula para ajuste linear, ao encontrar o valor de A, ele calcula o valor de a (usando a exponencial de A).
+      </p>
+      <h2>Implementação em C#</h2>
+      <pre><code>
+        using System;
+
+class Questao3
+{
+    static void Main()
+    {
+        double[] x = { 2, 4 };
+        double[] y = { 1, 3 };
+
+        // Transformação logarítmica
+        double[] lnY = new double[y.Length];
+        for (int i = 0; i < y.Length; i++)
+            lnY[i] = Math.Log(y[i]); // ln(y)
+
+        // Ajuste linear: ln(y) = A + bx
+        double somaX = 0, somaY = 0, somaXY = 0, somaX2 = 0;
+        int n = x.Length;
+
+        for (int i = 0; i < n; i++)
+        {
+            somaX += x[i];
+            somaY += lnY[i];
+            somaXY += x[i] * lnY[i];
+            somaX2 += x[i] * x[i];
+        }
+
+        double b = (n * somaXY - somaX * somaY) / (n * somaX2 - somaX * somaX);
+        double A = (somaY - b * somaX) / n;
+        double a = Math.Exp(A);
+
+        Console.WriteLine($"Modelo ajustado: y = {a} * e^({b}x)");
+    }
+}
+    </code></pre>
+  <pre>
+    Modelo ajustado: y = 0,3333333333333332 * e^(0,549306144334055x)
+  </pre>
+    </section>
+    <section id="questao_4">
+        <h1>Questão 4</h1>
+        <br />
+      <h2>Explicação</h2>
+      <p>
+        Regra dos Trapezios: A integral é aproximada somando as áreas de trapezios formados pelos pontos dados, afórmula leva em conta os primeiros e últimos valores de f(x), e multiplica os valores intermediarios por 2.
+
+Regra de Simpson: A integral é aproximada com uma fórmula que envolve multiplicar os valores intermediarios de f(x) por 4 e 2, alternadamente, a regra só funciona corretamente se o numero de subintervalos for par.
+
+
+      </p>
+      <h2>Implementação em C#</h2>
+      <pre><code>
+        using System;
+
+class Questao4
+{
+    static void Main()
+    {
+        double[] x = { 0.00, 0.25, 0.50, 0.75, 1.00 };
+        double[] fx = { 0.14815, 0.089213, 0.052478, 0.029630, 0.015625 };
+
+        double h = x[1] - x[0];
+
+        double integralTrapezio = RegraTrapezio(fx, h);
+        double integralSimpson = RegraSimpson(fx, h);
+
+        Console.WriteLine($"Aproximação pela Regra dos Trapézios: {integralTrapezio:F6}");
+        Console.WriteLine($"Aproximação pela Regra de Simpson: {integralSimpson:F6}");
+    }
+
+    static double RegraTrapezio(double[] f, double h)
+    {
+        double soma = f[0] + f[f.Length - 1];
+        for (int i = 1; i < f.Length - 1; i++)
+            soma += 2 * f[i];
+        return (h / 2) * soma;
+    }
+
+    static double RegraSimpson(double[] f, double h)
+    {
+        int n = f.Length;
+        if ((n - 1) % 2 != 0)
+        {
+            Console.WriteLine("Erro: número de subintervalos deve ser par para Simpson.");
+            return double.NaN;
+        }
+
+        double soma = f[0] + f[n - 1];
+        for (int i = 1; i < n - 1; i++)
+        {
+            soma += (i % 2 == 0) ? 2 * f[i] : 4 * f[i];
+        }
+        return (h / 3) * soma;
+    }
+}
+    </code></pre>
+  <pre>
+    Aproximação pela Regra dos Trapézios: 0,063302
+    Aproximação pela Regra de Simpson: 0,062009
+
+  </pre>
+    </section>
+    <section id="questao_5">
+        <h1>Questão 5</h1>
+        <br />
+      <h2>Explicação</h2>
+      <p>
+        Primeiro, o código estima a segunda derivada da função entre os pontos dados, depois calcula o valor máximo dessa segunda derivada, ele também aplica a fórmula para calcular o erro teórico, usando o comprimento do intervalo, o número de subintervalos e o valor máximo da segunda derivada.
+      </p>
+      <h2>Implementação em C#</h2>
+      <pre><code>
+        using System;
+
+class Questao5
+{
+    static void Main()
+    {
+        double[] x = { 0.00, 0.25, 0.50, 0.75, 1.00 };
+        double[] fx = { 0.14815, 0.089213, 0.052478, 0.029630, 0.015625 };
+
+        double h = x[1] - x[0];
+        int n = fx.Length - 1;
+
+        // Estimar f'' usando pontos centrais
+        double[] f2 = new double[3];
+        for (int i = 1; i < 4; i++)
+        {
+            f2[i - 1] = (fx[i + 1] - 2 * fx[i] + fx[i - 1]) / (h * h);
+        }
+
+        double maxF2 = Math.Max(Math.Abs(f2[0]), Math.Max(Math.Abs(f2[1]), Math.Abs(f2[2])));
+
+        // Fórmula do erro
+        double erro = -Math.Pow((x[n] - x[0]), 3) / (12 * Math.Pow(n, 2)) * maxF2;
+
+        Console.WriteLine($"Estimativa teórica do erro (trapézios): {erro:F8}");
+    }
+}
+    </code></pre>
+  <pre>
+    Estimativa teórica do erro (trapézios): -0,00185017
+  </pre>
+    </section>
+    <section id="questao_6">
+        <h1>Questão 6</h1>
+        <br />
+      <h2>Explicação</h2>
+      <p>
+        Os valores de f(x) sao dados em uma tabela. O codigo soma esses valores usando as duas regras para estimar a integral, a regra dos trapezios funciona com qualquer quantidade de pontos, já a regra de Simpson precisa de um numero par de subintervalos, como temos 7 subintervalos (8 pontos), o codigo adiciona um ponto a mais para poder usar Simpson corretamente.
+      </p>
+      <h2>Implementação em C#</h2>
+      <pre><code>
+        using System;
+
+class Questao6
+{
+    static void Main()
+    {
+        double[] x = { 0.00, 0.25, 0.50, 0.75, 1.00, 1.25, 1.50, 1.75 };
+        double[] fx = { 0.14815, 0.089213, 0.052478, 0.029630, 0.015625, 0.008215, 0.004010, 0.002100 };
+
+        double h = x[1] - x[0];
+
+        if ((fx.Length - 1) % 2 != 0)
+        {
+            Console.WriteLine("Número de subintervalos ímpar, adicionando um ponto extra.");
+            Array.Resize(ref x, x.Length + 1);
+            Array.Resize(ref fx, fx.Length + 1);
+
+            x[x.Length - 1] = 2.00; // Adicionando um ponto arbitrário (exemplo, pode ajustar conforme necessário)
+            fx[fx.Length - 1] = 0.001; // Valor fictício para o novo ponto, ajuste conforme necessário
+        }
+
+        double resultadoTrap = RegraTrapezio(fx, h);
+        double resultadoSimpson = RegraSimpson(fx, h);
+
+        Console.WriteLine($"Integral (Trapézios): {resultadoTrap:F8}");
+        Console.WriteLine($"Integral (Simpson):   {resultadoSimpson:F8}");
+    }
+
+    static double RegraTrapezio(double[] f, double h)
+    {
+        double soma = f[0] + f[f.Length - 1];
+        for (int i = 1; i < f.Length - 1; i++)
+            soma += 2 * f[i];
+        return (h / 2) * soma;
+    }
+
+    static double RegraSimpson(double[] f, double h)
+    {
+        int n = f.Length;
+        if ((n - 1) % 2 != 0)
+        {
+            Console.WriteLine("Erro: n deve ser par para Simpson.");
+            return double.NaN;
+        }
+
+        double soma = f[0] + f[n - 1];
+        for (int i = 1; i < n - 1; i++)
+        {
+            soma += (i % 2 == 0) ? 2 * f[i] : 4 * f[i];
+        }
+        return (h / 3) * soma;
+    }
+}
+    </code></pre>
+  <pre>
+    Integral (Trapézios): 0,06896150
+    Integral (Simpson):   0,06750067
+
+  </pre>
+    </section>
+    <section id="questao_7">
+        <h1>Questão 7</h1>
+        <br />
+      <h2>Explicação</h2>
+      <p>
+        Usamos o metodo de Euler, que calcula o proximo valor de y a partir do valor atual, usando pequenos passos de tamanho h = 0.1, o codigo começa com x = 0 e y = 1, e vai calculando os valores seguintes de y ate chegar em x = 1.
+
+No final, ele mostra os pares x e y aproximados em cada passo.
+      </p>
+      <h2>Implementação em C#</h2>
+      <pre><code>
+        using System;
+
+class Questao7
+{
+    static void Main()
+    {
+        double h = 0.1;
+        int N = (int)(1.0 / h);
+        double[] x = new double[N + 1];
+        double[] y = new double[N + 1];
+
+        // Condição inicial
+        x[0] = 0;
+        y[0] = 1;
+
+        for (int i = 0; i < N; i++)
+        {
+            x[i + 1] = x[i] + h;
+            y[i + 1] = y[i] + h * (-2 * x[i] * Math.Pow(y[i], 2));
+        }
+
+        Console.WriteLine("Método de Euler:");
+        for (int i = 0; i <= N; i++)
+        {
+            Console.WriteLine($"x = {x[i]:0.0}, y = {y[i]:F6}");
+        }
+    }
+}
+
+    </code></pre>
+  <pre>
+    x = 0,0, y = 1,000000
+    x = 0,1, y = 1,000000
+    x = 0,2, y = 0,980000
+    x = 0,3, y = 0,941584
+    x = 0,4, y = 0,888389
+    x = 0,5, y = 0,825250
+    x = 0,6, y = 0,757147
+    x = 0,7, y = 0,688354
+    x = 0,8, y = 0,622018
+    x = 0,9, y = 0,560113
+    x = 1,0, y = 0,503642
+  </pre>
+    </section>
+    <section id="questao_8">
+        <h1>Questão 8</h1>
+        <br />
+      <h2>Explicação</h2>
+      <p>
+        Diferente do método de Euler, o RK2 calcula dois valores intermediários (k1 e k2) em cada passo para ter uma estimativa mais precisa do proximo valor de y.
+      </p>
+      <h2>Implementação em C#</h2>
+      <pre><code>
+        using System;
+
+class Questao8
+{
+    static void Main()
+    {
+        double h = 0.1;
+        int N = (int)(1.0 / h);
+        double[] x = new double[N + 1];
+        double[] y = new double[N + 1];
+
+        // Condição inicial
+        x[0] = 0;
+        y[0] = 1;
+
+        for (int i = 0; i < N; i++)
+        {
+            x[i + 1] = x[i] + h;
+
+            double k1 = -2 * x[i] * Math.Pow(y[i], 2);
+            double k2 = -2 * (x[i] + h) * Math.Pow(y[i] + h * k1, 2);
+
+            y[i + 1] = y[i] + (h / 2) * (k1 + k2);
+        }
+
+        Console.WriteLine("Método de Runge-Kutta 2ª ordem (RK2):");
+        for (int i = 0; i <= N; i++)
+        {
+            Console.WriteLine($"x = {x[i]:0.0}, y = {y[i]:F6}");
+        }
+    }
+}
+
+    </code></pre>
+  <pre>
+    x = 0,0, y = 1,000000
+    x = 0,1, y = 0,990000
+    x = 0,2, y = 0,961366
+    x = 0,3, y = 0,917246
+    x = 0,4, y = 0,861954
+    x = 0,5, y = 0,800034
+    x = 0,6, y = 0,735527
+    x = 0,7, y = 0,671587
+    x = 0,8, y = 0,610399
+    x = 0,9, y = 0,553289
+    x = 1,0, y = 0,500919
+
+  </pre>
+    </section>
+    <section id="questao_9">
+        <h1>Questão 9</h1>
+        <br />
+      <h2>Explicação</h2>
+      <p>
+        O codigo calcula os valores dessas tres solucoes no intervalo de 0 a 1, com passo h = 0.1, e salva os dados num arquivo CSV chamado saida_q9.csv.
+        RK2 é mais preciso e fica praticamente colado na curva exata, enquanto Euler tem mais erro, especialmente quando x aumenta, mas o gráfico demonstra que ambas os métodos são bem próximos nos resultados.
+      </p>
+      <h2>Implementação em C#</h2>
+      <pre><code>
+        using System;
+using System.IO;
+
+class Questao9
+{
+    static void Main()
+    {
+        double h = 0.1;
+        int N = (int)(1.0 / h);
+        double[] x = new double[N + 1];
+        double[] yEuler = new double[N + 1];
+        double[] yRK2 = new double[N + 1];
+        double[] yExata = new double[N + 1];
+
+        x[0] = 0;
+        yEuler[0] = 1;
+        yRK2[0] = 1;
+        yExata[0] = 1;
+
+        for (int i = 0; i < N; i++)
+        {
+            x[i + 1] = x[i] + h;
+
+            // Euler
+            yEuler[i + 1] = yEuler[i] + h * (-2 * x[i] * Math.Pow(yEuler[i], 2));
+
+            // RK2
+            double k1 = -2 * x[i] * Math.Pow(yRK2[i], 2);
+            double k2 = -2 * (x[i] + h) * Math.Pow(yRK2[i] + h * k1, 2);
+            yRK2[i + 1] = yRK2[i] + (h / 2) * (k1 + k2);
+
+            // Solução exata
+            yExata[i + 1] = 1.0 / (1 + Math.Pow(x[i + 1], 2));
+        }
+
+        Console.WriteLine("x\tEuler\t\tRK2\t\tExata");
+        for (int i = 0; i <= N; i++)
+        {
+            Console.WriteLine($"{x[i]:0.0}\t{yEuler[i]:F6}\t{yRK2[i]:F6}\t{yExata[i]:F6}");
+        }
+
+        // (Opcional) salvar como CSV para plotar fora
+        File.WriteAllText("saida_q9.csv", "x,Euler,RK2,Exata\n");
+        for (int i = 0; i <= N; i++)
+        {
+            File.AppendAllText("saida_q9.csv", $"{x[i]},{yEuler[i]},{yRK2[i]},{yExata[i]}\n");
+        }
+
+        Console.WriteLine("\nDados salvos em 'saida_q9.csv'. Você pode usar Excel, LibreOffice ou Python para gerar o gráfico.");
+    }
+}
+
+    </code></pre>
+  <pre>
+    é possível ver o gráfico <a href="https://drive.google.com/file/d/1_wvUk28WuJOOl2l6qgE9QzZBfDo_XJj8/view?usp=sharing" target="_blank">aqui</a>
+    Saída:
+x       Euler           RK2             Exata
+0,0     1,000000        1,000000        1,000000
+0,1     1,000000        0,990000        0,990099
+0,2     0,980000        0,961366        0,961538
+0,3     0,941584        0,917246        0,917431
+0,4     0,888389        0,861954        0,862069
+0,5     0,825250        0,800034        0,800000
+0,6     0,757147        0,735527        0,735294
+0,7     0,688354        0,671587        0,671141
+0,8     0,622018        0,610399        0,609756
+0,9     0,560113        0,553289        0,552486
+1,0     0,503642        0,500919        0,500000
+  </pre>
+    </section>
+    <section id="questao_10">
+        <h1>Questão 10</h1>
+        <br />
+      <h2>Explicação</h2>
+      <p>
+        Pra essa questão eu usei Python, pois a questão ficou muito longa em C# e complicada, além dos pacotes e códigos não estarem dando resultados corretos.
+        Modelo Linear: Crescimento constante de 6.19 mil pessoas por ano, não é o mais adequado, pois não reflete a aceleração do crescimento populacional. Modelo Polinomial: Descreve um crescimento mais complexo, com aceleração ou desaceleração.Modelo Exponencial: Crescimento acelerado, o que é típico em populações, este modelo é o mais adequado, pois reflete o aumento rápido da população ao longo do tempo.
+
+        Com base na análise dos modelos ajustados e no comportamento típico do crescimento populacional, o modelo exponencial é o mais adequado para os dados fornecidos, já que descreve melhor a aceleração do crescimento populacional ao longo dos anos.
+      </p>
+      <h2>Implementação em C#</h2>
+      <pre><code>
+        import numpy as np
+import matplotlib.pyplot as plt
+from scipy.optimize import curve_fit
+
+# Dados experimentais
+anos = np.array([2000, 2002, 2004, 2006, 2008, 2010, 2012, 2014, 2016, 2018, 2020, 2022, 2024])
+populacao = np.array([120, 125, 130, 138, 147, 160, 172, 185, 199, 214, 230, 248, 267])
+
+
+# Modelo Linear
+def modelo_linear(x, a, b):
+    return a * x + b
+
+# Modelo Polinomial (grau 2)
+def modelo_polinomial(x, a, b, c):
+    return a * x**2 + b * x + c
+
+# Modelo Exponencial
+def modelo_exponencial(x, A, B):
+    return A * np.exp(B * (x - 2000))  # Subtração de 2000 para evitar números muito grandes
+
+
+params_linear, _ = curve_fit(modelo_linear, anos, populacao)
+
+params_polinomial, _ = curve_fit(modelo_polinomial, anos, populacao)
+
+# Definindo valores iniciais mais apropriados para A e B
+params_exponencial, _ = curve_fit(modelo_exponencial, anos, populacao, p0=[100, 0.01])
+
+# Gerar valores ajustados para os modelos
+anos_fine = np.linspace(2000, 2024, 100)
+populacao_linear = modelo_linear(anos_fine, *params_linear)
+populacao_polinomial = modelo_polinomial(anos_fine, *params_polinomial)
+populacao_exponencial = modelo_exponencial(anos_fine, *params_exponencial)
+
+plt.figure(figsize=(10, 6))
+plt.scatter(anos, populacao, color='black', label='Dados Experimentais')
+
+plt.plot(anos_fine, populacao_linear, label=f'Ajuste Linear: y = {params_linear[0]:.2f}x + {params_linear[1]:.2f}', color='blue')
+plt.plot(anos_fine, populacao_polinomial, label=f'Ajuste Polinomial: y = {params_polinomial[0]:.2f}x² + {params_polinomial[1]:.2f}x + {params_polinomial[2]:.2f}', color='green')
+plt.plot(anos_fine, populacao_exponencial, label=f'Ajuste Exponencial: y = {params_exponencial[0]:.2f}e^{params_exponencial[1]:.4f}(x-2000)', color='red')
+
+plt.title('Ajuste de Crescimento Populacional')
+plt.xlabel('Ano')
+plt.ylabel('População (milhares)')
+plt.legend()
+plt.grid(True)
+
+plt.show()
+
+    </code></pre>
+  <pre>
+    é possível ver o gráfico <a href="https://drive.google.com/file/d/1QlZyRlJTh6D9IWkBng23Sxh4jGLJoKaz/view?usp=sharing" target="_blank">aqui</a>
+  </pre>
+    </section>
+    <section id="referencia">
+        <h2>Referências:</h2>
+      <p>
+        Aulas da professora Juliana
+        <br />
+        Video-aula:
+        <a href="https://www.youtube.com/watch?v=diqvjfs1f5k" target="_blank"
+          >link aqui</a
+        >
+        <br />
+        Video-aula:
+        <a href="https://www.youtube.com/watch?v=fPxL84ARcvs" target="_blank"
+          >link aqui</a
+        >
+        <br />
+        "Numerical Analysis" - Richard L. Burden, J. Douglas Faires
+        <br>
+        "Cálculo Numérico" - RUGGIERO, M. A. G.; LOPES, V. L. R.
+        <br>
+        ChatGPT
+        <br>
+        Gemini
+      </p>
+    </section>
+            </body>
